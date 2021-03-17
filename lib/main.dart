@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:crud/CadastroView.dart';
 import 'package:flutter/material.dart';
 
 //Esquema de cor de fundo
@@ -104,7 +105,14 @@ class _MyHomePageState extends State<TelaInicialView> {
                           hoverElevation: 0,
                           focusElevation: 0,
                           child: Text("Criar Usuário"),
-                          onPressed: () => {},
+                          onPressed: () => {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      CadastroView()),
+                            )
+                          },
                         ),
                       )
                     ],
