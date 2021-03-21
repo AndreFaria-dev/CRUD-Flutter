@@ -1,6 +1,9 @@
 import 'dart:ui';
+import 'package:crud/CadastroModel.dart';
 import 'package:crud/CadastroView.dart';
 import 'package:flutter/material.dart';
+import 'package:crud/Helpers/database_helper.dart';
+import 'package:sqflite/sqlite_api.dart';
 
 //Esquema de cor de fundo
 Color c1 = Color(0xff1488CC);
@@ -12,6 +15,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,11 +37,29 @@ class TelaInicialView extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<TelaInicialView> {
-  void _novo_usuario() {}
+  //Criando uma instancia do objeto que referencia o banco de dados
 
-  void _logar() {
-    print(
-        "Roda o comando SELECT do banco de dados para verificar se o usuário e senha existem");
+  //Dados para autenticar
+  final TextEditingController _emailcontroller = TextEditingController();
+  final TextEditingController _senhacontroller = TextEditingController();
+
+  void _logar() async {
+    Database db = await DatabaseHelper.instance.database;
+
+    String sql = "SELECT email, senha FROM usuario WHERE email = '" +
+        _emailcontroller.text +
+        "' AND senha = '" +
+        _senhacontroller.text +
+        "'";
+
+    //print(sql);
+    //Os dados são alocado em variaveis
+    List<Map> result = await db.rawQuery(sql);
+
+    //Exibindo o resultado do select
+    result.forEach((row) => print(row));
+
+    //Verificar se retornou apenas uma linha...
   }
 
   @override
@@ -55,6 +77,15 @@ class _MyHomePageState extends State<TelaInicialView> {
               ),
             ),
           ),
+          Center(
+            child: Container(
+              margin: EdgeInsets.all(10),
+              child: Text(
+                "Tela de login",
+                style: TextStyle(fontSize: 30),
+              ),
+            ),
+          ),
           new Center(
             child: new ClipRect(
               child: new BackdropFilter(
@@ -64,7 +95,7 @@ class _MyHomePageState extends State<TelaInicialView> {
                 ),
                 child: new Container(
                   width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.height * 0.7,
+                  height: MediaQuery.of(context).size.height * 0.5,
                   decoration: new BoxDecoration(
                     color: Colors.grey.shade200.withOpacity(0.5),
                   ),
@@ -73,48 +104,60 @@ class _MyHomePageState extends State<TelaInicialView> {
                       new Container(
                         margin: EdgeInsets.all(10),
                         child: new TextField(
+                          controller: _emailcontroller,
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Login",
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(0),
+                              ),
+                            ),
+                            labelText: "E-mail",
                           ),
                         ),
                       ),
                       new Container(
                         margin: EdgeInsets.all(10),
                         child: new TextField(
+                          controller: _senhacontroller,
                           decoration: InputDecoration(
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(0),
+                              ),
+                            ),
                             labelText: "Senha",
                           ),
                         ),
                       ),
                       new Container(
-                        margin: EdgeInsets.all(10),
+                        padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: RaisedButton(
                           elevation: 0,
                           hoverElevation: 0,
                           focusElevation: 0,
                           child: Text("Entrar"),
-                          onPressed: () => {},
+                          onPressed: () => {
+                            _logar(),
+                          },
                         ),
                       ),
                       new Container(
-                        margin: EdgeInsets.all(10),
+                        padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: RaisedButton(
                           elevation: 0,
                           hoverElevation: 0,
                           focusElevation: 0,
-                          child: Text("Criar Usuário"),
+                          child: Text("Criar novo usuário"),
                           onPressed: () => {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (BuildContext context) =>
-                                      CadastroView()),
+                                builder: (context) => CadastroView(),
+                              ),
                             )
                           },
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
