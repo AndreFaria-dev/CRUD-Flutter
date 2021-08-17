@@ -1,20 +1,28 @@
 import 'dart:ui';
 import 'package:crud/CadastroModel.dart';
 import 'package:crud/CadastroView.dart';
+import 'package:crud/HomeView.dart';
+import 'package:crud/ListaView.dart';
 import 'package:flutter/material.dart';
-import 'package:crud/Helpers/database_helper.dart';
-import 'package:sqflite/sqlite_api.dart';
+import 'package:crud/Helpers/UsuarioHelper.dart';
 
 //Esquema de cor de fundo
 Color c1 = Color(0xff1488CC);
 Color c2 = Color(0xff2B32B2);
 
+
+
+
+
 void main() {
+  
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  
+  
 
   @override
   Widget build(BuildContext context) {
@@ -37,34 +45,65 @@ class TelaInicialView extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<TelaInicialView> {
+
   //Criando uma instancia do objeto que referencia o banco de dados
+  final dbHelper = UsuarioHelper.instance;
 
   //Dados para autenticar
   final TextEditingController _emailcontroller = TextEditingController();
   final TextEditingController _senhacontroller = TextEditingController();
 
-  void _logar() async {
-    Database db = await DatabaseHelper.instance.database;
+  List <Usuario> pessoas = List<Usuario>();
 
-    String sql = "SELECT email, senha FROM usuario WHERE email = '" +
-        _emailcontroller.text +
-        "' AND senha = '" +
-        _senhacontroller.text +
-        "'";
-
-    //print(sql);
-    //Os dados são alocado em variaveis
-    List<Map> result = await db.rawQuery(sql);
-
-    //Exibindo o resultado do select
-    result.forEach((row) => print(row));
-
-    //Verificar se retornou apenas uma linha...
+  //Método para leitura de dados
+  void _listar() async {
+    final todasAsLinhas = await dbHelper.queryAllRows();
+    
+    print(todasAsLinhas[0]);
+    todasAsLinhas.forEach((row) => print(row) );
+    
   }
+
+  void _autenticar() async {
+    
+    int numRows = 0;
+
+    final user = await dbHelper.queryLoginAuth(_emailcontroller.text, _senhacontroller.text);
+    //print(user);
+    user.forEach((row) {
+      print(row);
+      numRows++;
+      }
+    );
+
+    print(numRows);
+
+    if (numRows == 1) {
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context)=> HomeView(_emailcontroller.text, _senhacontroller.text)
+        ) 
+      );
+    } else {
+          showDialog(context: context, builder: (BuildContext context){
+
+            return AlertDialog(
+              title: new Text("Aviso"),
+              content: new Text("Erro na autenticação"),
+              actions: <Widget>[
+                new TextButton(onPressed: (){Navigator.of(context).pop();}, child: new Text("Fechar"))
+              ],
+            );
+          });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    //
+    //Carregar os dados para debug
+    _listar();
     return Scaffold(
       body: new Stack(
         children: [
@@ -105,10 +144,11 @@ class _MyHomePageState extends State<TelaInicialView> {
                         margin: EdgeInsets.all(10),
                         child: new TextField(
                           controller: _emailcontroller,
+                          onTap: ()=>_listar(),
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.all(
-                                Radius.circular(0),
+                                Radius.circular(2),
                               ),
                             ),
                             labelText: "E-mail",
@@ -122,11 +162,12 @@ class _MyHomePageState extends State<TelaInicialView> {
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.all(
-                                Radius.circular(0),
+                                Radius.circular(2),
                               ),
                             ),
                             labelText: "Senha",
                           ),
+                          obscureText: true,
                         ),
                       ),
                       new Container(
@@ -137,7 +178,17 @@ class _MyHomePageState extends State<TelaInicialView> {
                           focusElevation: 0,
                           child: Text("Entrar"),
                           onPressed: () => {
-                            _logar(),
+                            //Botão entrar
+
+                            //Verificar se o usuário existe no banco
+                            _autenticar(),
+
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context)=> HomeView()
+                            //   ) 
+                            // )
+
                           },
                         ),
                       ),

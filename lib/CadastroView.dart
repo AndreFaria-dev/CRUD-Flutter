@@ -1,5 +1,8 @@
+
+
 import 'package:crud/CadastroModel.dart';
-import 'package:crud/Helpers/database_helper.dart';
+import 'package:crud/Helpers/UsuarioHelper.dart';
+import 'package:crud/HomeView.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -7,7 +10,7 @@ import 'main.dart';
 
 class CadastroView extends StatelessWidget {
   //Instanciando objeto
-  final DatabaseHelper dbHelper = DatabaseHelper.instance;
+  final UsuarioHelper dbHelper = UsuarioHelper.instance;
 
   //Variaveis a serem passadas no formulário
   final TextEditingController _nomecontroller = TextEditingController();
@@ -25,8 +28,33 @@ class CadastroView extends StatelessWidget {
           //Envia os dados para a classe model
           //Grava no banco de dados
           _inserir();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context)=> BemVindoView(
+
+                _nomecontroller.text,
+                _emailcontroller.text, 
+                _telefonecontroller.text, 
+                _senha1controller.text
+
+              ), 
+            )
+          );
         } else {
           print("As senhas não coincidem");
+
+          showDialog(context: context, builder: (BuildContext context){
+
+            return AlertDialog(
+              title: new Text("Aviso"),
+              content: new Text("As senhas devem ser iguais"),
+              actions: <Widget>[
+                new TextButton(onPressed: (){Navigator.of(context).pop();}, child: new Text("Ok"))
+              ],
+            );
+          });
         }
       },
     );
@@ -96,6 +124,7 @@ class CadastroView extends StatelessWidget {
                   )),
                   labelText: "Informe a sua senha",
                 ),
+                obscureText: true,
               ),
             ),
             Container(
@@ -109,7 +138,9 @@ class CadastroView extends StatelessWidget {
                   )),
                   labelText: "Confirme sua senha",
                 ),
+                obscureText: true
               ),
+              
             ),
             Container(
               margin: EdgeInsets.all(10),
@@ -130,18 +161,27 @@ class CadastroView extends StatelessWidget {
     );
 
     Map<String, dynamic> row = {
-      DatabaseHelper.colunaNome: novoUsuario.nome,
-      DatabaseHelper.colunaTelefone: novoUsuario.telefone,
-      DatabaseHelper.colunaEmail: novoUsuario.email,
-      DatabaseHelper.colunaSenha: novoUsuario.senha
+      UsuarioHelper.colunaNome: novoUsuario.nome,
+      UsuarioHelper.colunaTelefone: novoUsuario.telefone,
+      UsuarioHelper.colunaEmail: novoUsuario.email,
+      UsuarioHelper.colunaSenha: novoUsuario.senha
     };
 
     final id = await dbHelper.insert(row);
     print("Usuário inserido $id");
   }
+
+  
 }
 
 class BemVindoView extends StatelessWidget {
+
+  
+  const BemVindoView(this.nome, this.email, this.fone, this.senha);
+  final String nome, fone, email, senha;
+
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,7 +200,7 @@ class BemVindoView extends StatelessWidget {
             Container(
               margin: EdgeInsets.all(20),
               child: Text(
-                "Seja bem vindo ao App",
+                "Seja bem vindo, "+this.nome,
                 style: TextStyle(fontSize: 30),
               ),
             ),
@@ -168,7 +208,9 @@ class BemVindoView extends StatelessWidget {
               margin: EdgeInsets.all(20),
               child: RaisedButton(
                 child: Text("Começar"),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> HomeView(this.email, this.senha) ));
+                },
               ),
             ),
           ],
